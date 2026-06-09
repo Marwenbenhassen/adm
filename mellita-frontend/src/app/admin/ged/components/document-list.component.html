@@ -1,0 +1,133 @@
+<div class="d-flex">
+  <app-sidebar></app-sidebar>
+  <div class="admin-content flex-grow-1">
+    <div class="admin-topbar d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-folder-fill me-2 text-warning"></i>Gestion des Documents</h4>
+        <small class="text-muted">{{ documents.length }} document(s) - Espace GED</small>
+      </div>
+      <button *ngIf="canUpload()" class="btn btn-mellita" (click)="goToUpload()">
+        <i class="bi bi-plus-lg me-2"></i>Ajouter
+      </button>
+    </div>
+
+    <div class="p-4 ged-container-inner">
+      <div class="admin-actions mb-3" *ngIf="isAdmin()">
+        <button class="btn btn-danger me-2" (click)="openDeleteAllModal()">Supprimer tous</button>
+        <button class="btn btn-warning" (click)="toggleSelectionMode()">Mode sélection</button>
+      </div>
+
+      <div class="selection-mode mb-3" *ngIf="selectionMode">
+        <div class="alert alert-info d-flex align-items-center">
+          <button class="btn btn-sm btn-danger ms-3" (click)="deleteSelected()" [disabled]="selectedIds.length === 0">
+            Supprimer ({{ selectedIds.length }})
+          </button>
+          <button class="btn btn-sm btn-secondary ms-2" (click)="toggleSelectionMode()">Annuler</button>
+        </div>
+      </div>
+
+      <!-- ✅ SECTION FILTRES AVEC CATÉGORIE AJOUTÉE -->
+      <div class="ged-filters">
+        <div class="search-box flex-grow-1">
+          <i class="bi bi-search"></i>
+          <input type="text" class="form-control" placeholder="Rechercher un document..." [(ngModel)]="searchTitle" (input)="search()">
+        </div>
+        
+        <!-- Filtre par catégorie -->
+        <select class="form-select" [(ngModel)]="searchCategory" (change)="search()">
+          <option value="">Toutes les catégories</option>
+          <option *ngFor="let cat of categories" [value]="cat.value">{{ cat.label }}</option>
+        </select>
+        
+        <select class="form-select" [(ngModel)]="searchYear" (change)="search()">
+          <option value="">Toutes les années</option>
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+        <button class="btn btn-secondary px-4" (click)="resetFilters()">Reset</button>
+        <button *ngIf="canArchive()" class="btn btn-warning px-4" (click)="toggleArchived()">
+          {{ showArchived ? 'Masquer' : 'Voir' }} archivés
+        </button>
+      </div>
+
+      <div class="text-center py-5" *ngIf="loading">
+        <div class="spinner-border text-success"></div>
+      </div>
+
+      <div class="ged-grid" *ngIf="!loading">
+        <div class="ged-card" *ngFor="let doc of documents" [class.archived]="doc.status === 'ARCHIVED'">
+          <div class="ged-card-checkbox" *ngIf="selectionMode">
+            <input type="checkbox" [checked]="isSelected(doc.id!)" (change)="toggleSelection(doc.id!)">
+          </div>
+          <div class="ged-card-header">
+            <i class="bi bi-file-earmark-pdf-fill ged-card-icon" *ngIf="doc.fileType.includes('pdf')"></i>
+            <i class="bi bi-file-earmark-word-fill ged-card-icon text-primary" *ngIf="doc.fileType.includes('word') || doc.fileType.includes('document')"></i>
+            <i class="bi bi-file-earmark-excel-fill ged-card-icon text-success" *ngIf="doc.fileType.includes('excel') || doc.fileType.includes('sheet')"></i>
+            <i class="bi bi-file-earmark-text ged-card-icon text-secondary" *ngIf="!doc.fileType.includes('pdf') && !doc.fileType.includes('word') && !doc.fileType.includes('document') && !doc.fileType.includes('excel') && !doc.fileType.includes('sheet')"></i>
+            <span class="badge category-badge">{{ doc.category }}</span>
+          </div>
+          <div class="ged-card-body">
+            <h6 class="doc-title">{{ doc.title }}</h6>
+            <small class="doc-filename"><i class="bi bi-paperclip me-1"></i>{{ doc.fileName }}</small>
+            <div class="ged-meta">
+              <span><i class="bi bi-calendar3 text-primary"></i> {{ doc.year }}</span>
+              <span><i class="bi bi-person-circle text-success"></i> {{ doc.createdBy }}</span>
+            </div>
+          </div>
+          <div class="ged-card-footer">
+            <button class="btn-icon-action btn-success-action" (click)="download(doc)" title="Télécharger">
+              <i class="bi bi-download"></i>
+            </button>
+            <button *ngIf="canManagePermissions()" class="btn-icon-action btn-info-action" (click)="openPermissionsModal(doc)" title="Accès">
+              <i class="bi bi-shield-lock"></i>
+            </button>
+            <button *ngIf="doc.status === 'ACTIVE' && canArchive()" class="btn-icon-action btn-warning-action" (click)="archive(doc)" title="Archiver">
+              <i class="bi bi-archive"></i>
+            </button>
+            <button *ngIf="doc.status === 'ARCHIVED' && canArchive()" class="btn-icon-action btn-info-action" (click)="restore(doc)" title="Restaurer">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+            <button *ngIf="canDelete()" class="btn-icon-action btn-danger-action" (click)="deleteDoc(doc)" title="Supprimer">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-12 text-center text-muted py-5" *ngIf="!loading && documents.length === 0">
+        <i class="bi bi-folder-x fs-1 mb-3 d-block"></i>Aucun document trouvé
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="permissionsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5>Accès du document</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="visibleToAll" [(ngModel)]="permissions.visibleToAll">
+          <label class="form-check-label" for="visibleToAll">Visible par tous</label>
+        </div>
+        <div class="mt-3" *ngIf="!permissions.visibleToAll">
+          <label>Restreindre aux rôles :</label>
+          <div class="form-check" *ngFor="let role of availableRoles">
+            <input class="form-check-input" type="checkbox" [value]="role.value" (change)="toggleRole(role.value)" [checked]="isRoleSelected(role.value)">
+            <label>{{ role.label }}</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" (click)="savePermissions()">Enregistrer</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteAllModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="text-danger">Supprimer tous</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><p>Supprimer TOUS les documents ?</p><div class="alert alert-warning">{{ documents.length }} document(s)</div></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-danger" (click)="confirmDeleteAll()">Supprimer</button></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h3>Mellita</h3>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Dashboard</div>
+    <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="active">
+      <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+    </a>
+  </div>
+  <!-- GED - Upload (Admin, Administratif, Trésorier) -->
+  <div class="nav-section" *ngIf="canUpload()">
+    <div class="nav-section-label">GED - Gestion</div>
+    <a class="nav-item" routerLink="/admin/ged/upload" routerLinkActive="active">
+      <i class="bi bi-cloud-upload-fill"></i><span>Téléverser Document</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/ged" routerLinkActive="active">
+      <i class="bi bi-folder2-open"></i><span>Consulter Documents</span>
+    </a>
+  </div>
+  <!-- GED - Consultation uniquement (Formateur, Animateur, Membre) -->
+  <div class="nav-section" *ngIf="canView() && !canUpload()">
+    <div class="nav-section-label">GED - Consultation</div>
+    <a class="nav-item" routerLink="/admin/ged" routerLinkActive="active">
+      <i class="bi bi-folder2-open"></i><span>Consulter Documents</span>
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Gestion</div>
+    <a class="nav-item" routerLink="/admin/events" routerLinkActive="active" *ngIf="isAdmin() || isFormateur()">
+      <i class="bi bi-calendar-event"></i><span>Événements</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/formations" routerLinkActive="active" *ngIf="isAdmin() || isFormateur()">
+      <i class="bi bi-mortarboard"></i><span>Formations</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/clubs" routerLinkActive="active" *ngIf="isAdmin() || isAnimateur()">
+      <i class="bi bi-trophy"></i><span>Clubs</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/finance" routerLinkActive="active" *ngIf="isAdmin() || isTresorier()">
+      <i class="bi bi-cash-stack"></i><span>Finance</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/ecritures" routerLinkActive="active" *ngIf="isAdmin() || isTresorier()">
+      <i class="bi bi-journal"></i><span>Écritures</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/demandes-inscription" routerLinkActive="active" *ngIf="isAdmin() || isAdministratif()">
+      <i class="bi bi-person-plus"></i><span>Demandes</span>
+    </a>
+    <a class="nav-item" routerLink="/admin/users" routerLinkActive="active" *ngIf="isAdmin()">
+      <i class="bi bi-people"></i><span>Utilisateurs</span>
+    </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Personnel</div>
+    <a class="nav-item" routerLink="/admin/mes-clubs" routerLinkActive="active" *ngIf="isAnimateur()">
+      <i class="bi bi-trophy"></i><span>Mes Clubs</span>
+    </a>
+
+  </div>
+  <div class="nav-section">
+    <button class="nav-item logout-btn" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i><span>Déconnexion</span>
+    </button>
+  </div>
+</nav>
+

@@ -1,0 +1,198 @@
+﻿import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { GedService } from '../services/ged.service';
+import { AuthService } from '../../../core/services/auth.service';
+
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+@Component({
+  selector: 'app-ged-document-upload',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './document-upload.component.html',
+  styleUrls: ['./document-upload.component.css']
+})
+export class GedDocumentUploadComponent implements OnInit {
+  private gedService = inject(GedService);
+  private router = inject(Router);
+  private authService = inject(AuthService);
+
+  selectedFile: File | null = null;
+  title = '';
+  description = '';
+  category = '';
+  year = new Date().getFullYear();
+  uploading = false;
+  categories: Category[] = [];
+  years: number[] = [];
+  errorMessage = '';
+  loadingCategories = true;
+
+  allowedExtensions: string[] = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png'];
+  maxFileSize = 25 * 1024 * 1024;
+
+  private readonly STORAGE_KEY = 'ged_upload_form';
+
+  constructor() {
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear; y >= currentYear - 10; y--) {
+      this.years.push(y);
+    }
+    const role = this.authService.getRole();
+    if (role === 'ADMINISTRATIF') this.allowedExtensions = ['doc', 'docx', 'xls', 'xlsx'];
+    else if (role === 'TRESORIER') this.allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
+    
+    this.restoreFormData();
+  }
+
+  ngOnInit(): void {
+    this.loadCategories();
+  }
+
+  private saveFormData(): void {
+    const formData = {
+      title: this.title,
+      description: this.description,
+      category: this.category,
+      year: this.year
+    };
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(formData));
+  }
+
+  private restoreFormData(): void {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.title = data.title || '';
+        this.description = data.description || '';
+        this.category = data.category || '';
+        this.year = data.year || new Date().getFullYear();
+        console.log('✅ Données restaurées:', this.category, this.year);
+      }
+    } catch (e) {
+      console.warn('Erreur restauration:', e);
+    }
+  }
+
+  onFormChange(): void {
+    this.saveFormData();
+  }
+
+  loadCategories(): void {
+    this.loadingCategories = true;
+    
+    if (typeof this.gedService.getCategories === 'function') {
+      this.gedService.getCategories().subscribe({
+        next: (data) => {
+          this.categories = data;
+          this.loadingCategories = false;
+          if (this.categories.length > 0 && !this.category) {
+            this.category = this.categories[0].name;
+            this.saveFormData();
+          }
+        },
+        error: (err) => {
+          console.error('Erreur chargement catégories:', err);
+          this.setDefaultCategories();
+        }
+      });
+    } else {
+      this.setDefaultCategories();
+    }
+  }
+
+  setDefaultCategories(): void {
+    this.categories = [
+      { id: 1, name: 'ADMINISTRATIF' },
+      { id: 2, name: 'FINANCIER' },
+      { id: 3, name: 'CLUB' },
+      { id: 4, name: 'FORMATION' },
+      { id: 5, name: 'RAPPORT' },
+      { id: 6, name: 'CONVENTION' }
+    ];
+    this.loadingCategories = false;
+    if (this.categories.length > 0 && !this.category) {
+      this.category = this.categories[0].name;
+      this.saveFormData();
+    }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const extension = file.name.split('.').pop()?.toLowerCase() || '';
+
+      if (file.size > this.maxFileSize) {
+        this.errorMessage = 'Le fichier dépasse 25 Mo';
+        this.selectedFile = null;
+        return;
+      }
+
+      if (this.allowedExtensions.indexOf(extension) === -1) {
+        this.errorMessage = 'Format non autorisé. Formats acceptés : ' + this.allowedExtensions.join(', ');
+        this.selectedFile = null;
+        return;
+      }
+
+      this.selectedFile = file;
+      this.errorMessage = '';
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  goBack(): void {
+    this.router.navigate(['/admin/ged']);
+  }
+
+  upload() {
+    if (!this.selectedFile || !this.title) {
+      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      return;
+    }
+
+    if (!this.category) {
+      this.errorMessage = 'Veuillez sélectionner une catégorie';
+      return;
+    }
+
+    this.uploading = true;
+    this.errorMessage = '';
+
+    this.saveFormData();
+
+    if (typeof this.gedService.uploadDocument === 'function') {
+      this.gedService.uploadDocument(this.selectedFile, {
+        title: this.title,
+        description: this.description,
+        category: this.category,
+        year: this.year
+      }).subscribe({
+        next: () => {
+          localStorage.removeItem(this.STORAGE_KEY);
+          this.router.navigate(['/admin/ged']);
+        },
+        error: (err) => {
+          this.uploading = false;
+          this.errorMessage = err.error?.message || 'Erreur lors du téléversement';
+          console.error('Upload error:', err);
+        }
+      });
+    } else {
+      this.errorMessage = 'Service d\'upload non disponible';
+      this.uploading = false;
+    }
+  }
+}

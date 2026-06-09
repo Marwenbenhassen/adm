@@ -1,0 +1,157 @@
+<div class="d-flex">
+  <app-sidebar></app-sidebar>
+  <div class="admin-content flex-grow-1">
+    <div class="admin-topbar d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-cloud-upload me-2 text-primary"></i>Ajouter un Document</h4>
+      </div>
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </button>
+    </div>
+
+    <div class="p-4 ged-container-inner">
+      <div class="upload-card mx-auto" style="max-width: 800px;">
+        <div class="alert alert-danger" *ngIf="errorMessage">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+        </div>
+
+        <div class="drop-zone">
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display:none">
+          <i class="bi bi-cloud-upload fs-1"></i>
+          <p>Cliquez ou glissez un fichier</p>
+          <button class="btn btn-outline-primary" (click)="fileInput.click()">
+            <i class="bi bi-folder2-open me-1"></i>Parcourir
+          </button>
+          <small class="d-block mt-2 text-muted">
+            Formats : {{ allowedExtensions.join(', ') }} | Max 25 Mo
+          </small>
+        </div>
+
+        <div class="selected-file" *ngIf="selectedFile">
+          <i class="bi bi-file-earmark-check text-success me-2"></i>
+          <strong>{{ selectedFile.name }}</strong>
+          <span class="text-muted ms-2">({{ formatFileSize(selectedFile.size) }})</span>
+        </div>
+
+        <div class="upload-form mt-4">
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="title" (ngModelChange)="onFormChange()" placeholder="Titre du document">
+            </div>
+
+            <div class="col-12 mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" [(ngModel)]="description" (ngModelChange)="onFormChange()" rows="2" placeholder="Description optionnelle"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Catégorie <span class="text-danger">*</span></label>
+              <div class="category-input-group">
+                <div *ngIf="loadingCategories" class="text-muted">
+                  <div class="spinner-border spinner-border-sm me-2"></div>Chargement...
+                </div>
+                <div class="input-group" *ngIf="!loadingCategories">
+                  <select class="form-select" [(ngModel)]="category" (ngModelChange)="onFormChange()">
+                    <option *ngFor="let cat of categories" [value]="cat.name">{{ cat.name }}</option>
+                  </select>
+                  <button class="btn btn-outline-primary" type="button" (click)="openCategoryModal()" *ngIf="isAdmin" title="Gérer les catégories">
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Année</label>
+              <select class="form-select" [(ngModel)]="year" (ngModelChange)="onFormChange()">
+                <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <button class="btn btn-mellita btn-lg w-100" (click)="upload()" [disabled]="uploading || !selectedFile || !title || !category">
+              <span *ngIf="uploading">
+                <span class="spinner-border spinner-border-sm me-2"></span>Téléversement...
+              </span>
+              <span *ngIf="!uploading">
+                <i class="bi bi-cloud-upload me-2"></i>Téléverser le document
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRUD CATEGORIES -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-tags me-2"></i>Gestion des Catégories
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulaire d'ajout/modification -->
+        <div class="category-form mb-4 p-3 bg-light rounded" *ngIf="isAdmin">
+          <h6><i class="bi bi-plus-circle me-2"></i>{{ editingCategory ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}</h6>
+          <div class="row g-2">
+            <div class="col-md-5">
+              <input type="text" class="form-control" [(ngModel)]="categoryForm.name" placeholder="Nom de la catégorie" (keyup.enter)="saveCategory()">
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control" [(ngModel)]="categoryForm.description" placeholder="Description (optionnelle)">
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" (click)="saveCategory()" [disabled]="savingCategory">
+                <span *ngIf="savingCategory"><span class="spinner-border spinner-border-sm me-1"></span></span>
+                <span *ngIf="!savingCategory"><i class="bi bi-check-lg"></i> {{ editingCategory ? 'Modifier' : 'Ajouter' }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="alert alert-danger mt-2" *ngIf="categoryFormError">{{ categoryFormError }}</div>
+        </div>
+
+        <!-- Liste des catégories -->
+        <h6><i class="bi bi-list-ul me-2"></i>Liste des catégories</h6>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Description</th>
+                <th style="width: 100px" *ngIf="isAdmin">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cat of categories">
+                <td><strong>{{ cat.name }}</strong></td>
+                <td>{{ cat.description || '-' }}</td>
+                <td *ngIf="isAdmin">
+                  <button class="btn btn-sm btn-outline-primary me-1" (click)="editCategory(cat)" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(cat.id!, cat.name)" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="categories.length === 0">
+                <td [attr.colspan]="isAdmin ? 3 : 2" class="text-center text-muted">Aucune catégorie</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

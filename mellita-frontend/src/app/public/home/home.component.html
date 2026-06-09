@@ -1,0 +1,316 @@
+<app-navbar></app-navbar>
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero-section">
+  <div class="hero-bg-pattern"></div>
+  <div class="container position-relative">
+    <div class="row align-items-center min-vh-75">
+      <div class="col-lg-7 animate-fadeInUp">
+        <div class="hero-badge mb-3">
+          <i class="bi bi-flower1 me-2"></i>
+          {{ 'HOME.HERO_TITLE' | translate }}
+        </div>
+        <h1 class="hero-title mb-4">
+          {{ 'HOME.HERO_SUBTITLE' | translate }}
+        </h1>
+        <p class="hero-desc mb-5">
+          {{ 'HOME.HERO_DESC' | translate }}
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a routerLink="/auth/register" class="btn btn-hero-primary">
+            <i class="bi bi-person-plus-fill me-2"></i>{{ 'HOME.CTA_JOIN' | translate }}
+          </a>
+          <a routerLink="/about" class="btn btn-hero-secondary">
+            <i class="bi bi-play-circle-fill me-2"></i>{{ 'HOME.CTA_LEARN' | translate }}
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="hero-illustration">
+          <div class="hero-card-float card1">
+            <i class="bi bi-people-fill"></i>
+            <span>120+ {{ 'HOME.STATS_MEMBERS' | translate }}</span>
+          </div>
+          <div class="hero-card-float card2">
+            <i class="bi bi-calendar-check"></i>
+            <span>45+ {{ 'HOME.STATS_EVENTS' | translate }}</span>
+          </div>
+          <div class="hero-card-float card3">
+            <i class="bi bi-heart-fill"></i>
+            <span>Communauté Active</span>
+          </div>
+          <div class="hero-emblem">
+            <i class="bi bi-flower1"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 80L48 69.3C96 59 192 37 288 32C384 27 480 37 576 42.7C672 48 768 48 864 42.7C960 37 1056 27 1152 24C1248 21 1344 27 1392 29.3L1440 32V80H0Z" fill="white"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-6 col-md-3 animate-fadeInUp" *ngFor="let stat of stats; let i = index"
+           [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="stat-box text-center">
+          <div class="stat-icon-wrap">
+            <i class="bi {{ stat.icon }}"></i>
+          </div>
+          <div class="stat-val">{{ stat.value }}</div>
+          <div class="stat-lbl">{{ stat.label }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ABOUT SECTION ===== -->
+<section class="py-5">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="about-visual">
+          <div class="about-shape-1"></div>
+          <div class="about-shape-2"></div>
+          <div class="about-img-placeholder">
+            <i class="bi bi-building"></i>
+            <p>{{ 'HOME.HERO_TITLE' | translate }}</p>
+          </div>
+          <div class="about-badge-float">
+            <i class="bi bi-award-fill"></i>
+            <span>Fondée en 2015</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <h2 class="section-title">{{ 'HOME.ABOUT_TITLE' | translate }}</h2>
+        <p class="text-muted mb-4" style="line-height:1.9">
+          {{ 'HOME.ABOUT_DESC' | translate }}
+        </p>
+        <div class="row g-3 mb-4">
+          <div class="col-6" *ngFor="let item of [
+            {icon:'bi-heart-fill', text:'Solidarité communautaire'},
+            {icon:'bi-shield-check', text:'Transparence totale'},
+            {icon:'bi-lightbulb-fill', text:'Innovation sociale'},
+            {icon:'bi-globe', text:'Impact durable'}
+          ]">
+            <div class="value-item">
+              <i class="bi {{ item.icon }}"></i>
+              <span>{{ item.text }}</span>
+            </div>
+          </div>
+        </div>
+        <a routerLink="/about" class="btn btn-mellita">
+          {{ 'HOME.CTA_LEARN' | translate }} <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FORMATIONS (PLANIFIÉE & EN COURS seulement) ===== -->
+<section class="py-5 bg-light" *ngIf="formations.length > 0">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div>
+        <h2 class="section-title">Formations Disponibles</h2>
+        <p class="text-muted">Formations à venir et en cours</p>
+      </div>
+      <a routerLink="/formations" class="btn btn-outline-mellita">Toutes les Formations</a>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 animate-fadeInUp" *ngFor="let f of formations; let i = index"
+           [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="formation-card h-100">
+          <div class="formation-card-header">
+            <div class="formation-date-badge">
+              <span class="day">{{ formatDate(f.dateDebut).day }}</span>
+              <span class="month">{{ formatDate(f.dateDebut).month }}</span>
+            </div>
+            <span class="badge rounded-pill {{ getFormationStatusClass(f.statut) }}">
+              {{ getFormationStatusLabel(f.statut) }}
+            </span>
+          </div>
+          <div class="formation-card-body">
+            <h5 class="fw-bold mb-2">{{ f.titre }}</h5>
+            <p class="text-muted small mb-3">{{ (f.description || f.titre) | slice:0:100 }}...</p>
+            <div class="formation-meta">
+              <span *ngIf="f.lieu"><i class="bi bi-geo-alt-fill me-1 text-success"></i>{{ f.lieu }}</span>
+              <span *ngIf="f.dureeHeures"><i class="bi bi-clock me-1 text-primary"></i>{{ f.dureeHeures }}h</span>
+              <span *ngIf="f.prix === 0"><i class="bi bi-tag-fill me-1 text-warning"></i>Gratuit</span>
+              <span *ngIf="f.prix && f.prix > 0"><i class="bi bi-tag-fill me-1 text-warning"></i>{{ f.prix }} TND</span>
+            </div>
+          </div>
+          <div class="formation-card-footer">
+            <a [routerLink]="['/formations', f.id]" class="btn btn-sm btn-outline-mellita w-100">Voir détails</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== UPCOMING EVENTS ===== -->
+<section class="py-5" [class.bg-white]="formations.length > 0">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div>
+        <h2 class="section-title">Événements à Venir</h2>
+        <p class="text-muted">Rejoignez-nous lors de nos prochaines activités</p>
+      </div>
+      <a routerLink="/events" class="btn btn-outline-mellita">Tous les Événements</a>
+    </div>
+
+    <div class="text-center py-5" *ngIf="loading">
+      <div class="spinner-border text-success" role="status"></div>
+    </div>
+
+    <div class="row g-4" *ngIf="!loading">
+      <div class="col-md-4 animate-fadeInUp" *ngFor="let event of upcomingEvents; let i = index"
+           [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="event-card h-100">
+          <div class="event-card-header">
+            <div class="event-date-badge">
+              <span class="day">{{ formatDate(event.dateDebut).day }}</span>
+              <span class="month">{{ formatDate(event.dateDebut).month }}</span>
+            </div>
+            <span class="badge rounded-pill {{ getStatusClass(event.statut) }}">
+              {{ event.statut?.replace('_', ' ') }}
+            </span>
+          </div>
+          <div class="event-card-body">
+            <h5 class="fw-bold mb-2">{{ event.titre }}</h5>
+            <p class="text-muted small mb-3">{{ event.description | slice:0:100 }}...</p>
+            <div class="event-meta">
+              <span *ngIf="event.lieu"><i class="bi bi-geo-alt-fill me-1 text-success"></i>{{ event.lieu }}</span>
+              <span *ngIf="event.prix === 0"><i class="bi bi-tag-fill me-1 text-warning"></i>Gratuit</span>
+              <span *ngIf="event.prix && event.prix > 0"><i class="bi bi-tag-fill me-1 text-warning"></i>{{ event.prix }} TND</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 text-center" *ngIf="upcomingEvents.length === 0">
+        <div class="py-5 text-muted">
+          <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+          Aucun événement à venir pour le moment.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CLUBS ===== -->
+<section class="py-5 bg-light" *ngIf="clubs.length > 0">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div>
+        <h2 class="section-title">Nos Clubs</h2>
+        <p class="text-muted">Rejoignez l'un de nos clubs actifs</p>
+      </div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4" *ngFor="let club of clubs">
+        <div class="club-card text-center h-100">
+          <div class="club-icon-wrap">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <h5 class="fw-bold mt-3 mb-1">{{ club.nom }}</h5>
+          <p class="text-muted small mb-3">{{ (club.description || '') | slice:0:100 }}</p>
+          <span class="badge bg-success-subtle text-success rounded-pill px-3">Actif</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LATEST NEWS ===== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div>
+        <h2 class="section-title">Dernières Actualités</h2>
+        <p class="text-muted">Restez informé de nos activités</p>
+      </div>
+      <a routerLink="/news" class="btn btn-outline-mellita">Toutes les Actualités</a>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4" *ngFor="let news of latestNews">
+        <div class="news-card h-100">
+          <div class="news-img-placeholder">
+            <i class="bi bi-newspaper"></i>
+          </div>
+          <div class="p-4">
+            <span class="news-cat">{{ news.categorie || 'Actualité' }}</span>
+            <h5 class="fw-bold my-2">{{ news.titre }}</h5>
+            <p class="text-muted small">{{ news.contenu | slice:0:120 }}...</p>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>
+                {{ news.createdAt | date:'dd/MM/yyyy' }}
+              </small>
+              <a routerLink="/news" class="btn btn-sm btn-link text-success p-0">Lire plus →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="cta-section">
+  <div class="container text-center">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <h2 class="fw-bold text-white mb-3">Soutenez Notre Mission</h2>
+        <p class="text-white-50 mb-5">
+          Votre soutien nous permet de continuer à œuvrer pour le développement de notre communauté.
+          Rejoignez-nous ou faites un don aujourd'hui.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+          <a routerLink="/auth/register" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-person-plus-fill me-2"></i>Devenir Membre
+          </a>
+          <a routerLink="/donations" class="btn btn-gold btn-lg px-5">
+            <i class="bi bi-heart-fill me-2"></i>Faire un Don
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT INFO ===== -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="section-title text-center">Nous Contacter</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-4" *ngFor="let contact of [
+        {icon:'bi-geo-alt-fill', title:'Adresse', text:'Mellita, Zarzis, Médenine, Tunisie', color:'#1a6b3c'},
+        {icon:'bi-telephone-fill', title:'Téléphone', text:'+216 71 000 000', color:'#1e4d7b'},
+        {icon:'bi-envelope-fill', title:'Email', text:'contact@mellita.tn', color:'#c8a84b'}
+      ]">
+        <div class="contact-card text-center">
+          <div class="contact-icon" [style.background]="contact.color + '20'" [style.color]="contact.color">
+            <i class="bi {{ contact.icon }}"></i>
+          </div>
+          <h5 class="fw-bold">{{ contact.title }}</h5>
+          <p class="text-muted">{{ contact.text }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<app-footer></app-footer>

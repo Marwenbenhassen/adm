@@ -1,0 +1,62 @@
+﻿<div class="categories-container">
+  <div class="categories-header">
+    <h3><i class="bi bi-tags me-2"></i>Gestion des Catégories</h3>
+    <button class="btn btn-primary" (click)="openModal()" *ngIf="isAdmin">
+      <i class="bi bi-plus-lg me-2"></i>Nouvelle catégorie
+    </button>
+  </div>
+
+  <div class="text-center py-5" *ngIf="loading">
+    <div class="spinner-border text-success"></div>
+  </div>
+
+  <div class="categories-grid" *ngIf="!loading">
+    <div class="category-card" *ngFor="let cat of categories">
+      <div class="category-info">
+        <h5>{{ cat.name }}</h5>
+        <p>{{ cat.description || 'Aucune description' }}</p>
+      </div>
+      <div class="category-actions" *ngIf="isAdmin">
+        <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(cat.id!, cat.name)">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center py-5" *ngIf="categories.length === 0 && !loading">
+    <i class="bi bi-tags fs-1 text-muted"></i>
+    <p>Aucune catégorie trouvée</p>
+    <button *ngIf="isAdmin" class="btn btn-primary" (click)="openModal()">
+      Créer la première catégorie
+    </button>
+  </div>
+</div>
+
+<div class="modal fade" id="categoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nouvelle catégorie</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nom *</label>
+          <input type="text" class="form-control" [(ngModel)]="newCategory.name" placeholder="Ex: Administratif">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" [(ngModel)]="newCategory.description" rows="2" placeholder="Description de la catégorie"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" (click)="saveCategory()">Créer</button>
+      </div>
+    </div>
+  </div>
+</div>
