@@ -4,7 +4,6 @@
   "outputDirectory": "mellita-frontend/dist/mellita-frontend",
   "installCommand": "cd mellita-frontend && npm install",
   "framework": null,
-  "nodeVersion": "20.x",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 
