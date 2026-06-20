@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd mellita-frontend && npx -p @angular/cli ng build --configuration production",
+  "outputDirectory": "mellita-frontend/dist/mellita-frontend",
+  "installCommand": "cd mellita-frontend && npm install",
+  "framework": null,
+  "nodeVersion": "20.x",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+

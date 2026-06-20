@@ -1,8 +1,0 @@
-{
-  "buildCommand": "npx @angular/cli build --configuration production",
-  "outputDirectory": "dist/mellita-frontend",
-  "framework": null,
-  "nodeVersion": "20.x"
-}
-
-
