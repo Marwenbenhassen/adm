@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -179,7 +180,7 @@ export class LoginComponent {
 
   checkBackend(): void {
     this.checkedBackend = false;
-    fetch('/api/actualites/publics', { signal: AbortSignal.timeout(3000) })
+    fetch(environment.apiUrl + '/actualites/publics', { signal: AbortSignal.timeout(3000) })
       .then(r => { this.backendOnline = r.status < 500; this.checkedBackend = true; })
       .catch(() => { this.backendOnline = false; this.checkedBackend = true; });
   }
