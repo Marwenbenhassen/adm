@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npx @angular/cli build",
+  "outputDirectory": "dist/mellita-frontend",
+  "framework": "angular"
+}
