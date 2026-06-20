@@ -21,6 +21,9 @@ target/
 # H2 Database
 mellita-backend/data/
 
+# Credentials
+mellita-backend/src/main/resources/credentials.json
+
 # Uploads
 mellita-backend/uploads/
 
